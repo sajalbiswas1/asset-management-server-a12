@@ -30,6 +30,7 @@ async function run() {
     await client.connect();
     const userCollection = client.db("assetManagement").collection("users");
     const aboutCollection = client.db("assetManagement").collection("about");
+    const packageCollection = client.db("assetManagement").collection("packages");
 
 
     //user section
@@ -57,6 +58,15 @@ async function run() {
         const result = await aboutCollection.find().toArray();
         res.send(result);
       });
+      
+      //package section
+      app.get('/packages', async (req, res) => {
+        const result = await packageCollection.find().toArray();
+        res.send(result);
+      });
+
+
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
