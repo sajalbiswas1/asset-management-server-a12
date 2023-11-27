@@ -29,7 +29,10 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
     const userCollection = client.db("assetManagement").collection("users");
+    const aboutCollection = client.db("assetManagement").collection("about");
 
+
+    //user section
     app.get('/users', async (req, res) => {
       const result = await userCollection.find().toArray();
       res.send(result);
@@ -46,6 +49,12 @@ async function run() {
       console.log(query)
         const result = await userCollection.insertOne(user);
         
+        res.send(result);
+      });
+
+      //about section
+      app.get('/about', async (req, res) => {
+        const result = await aboutCollection.find().toArray();
         res.send(result);
       });
     // Send a ping to confirm a successful connection
