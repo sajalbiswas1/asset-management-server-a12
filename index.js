@@ -127,6 +127,24 @@ async function run() {
         res.send(result)
       })
       // request section
+      app.get('/requests', async (req, res) => {
+        const cursor = requestCollection.find();
+        const result = await cursor.toArray();
+        res.send(result);
+    })
+    app.get('/requests/v1', async (req, res) => {
+      let query = {};
+            console.log(req.query)
+            if (req?.query?.email) {
+                query = { email: req.query.email }
+            }
+            console.log(query)
+      const cursor = requestCollection.find(query);
+      const result = await cursor.toArray();
+      console.log(result)
+      res.send(result);
+  })
+
       app.post('/requests', async (req,res)=>{
         const requestAsset = req.body;
         // console.log(asset)
