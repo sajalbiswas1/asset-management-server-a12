@@ -43,114 +43,129 @@ async function run() {
     });
 
     app.post('/users', async (req, res) => {
-        const user = req.body;
-        //user do not exists
-        const query = { email: user.email }
+      const user = req.body;
+      //user do not exists
+      const query = { email: user.email }
       const existingUser = await userCollection.findOne(query);
       if (existingUser) {
         return res.send({ message: 'user already exists', insertedId: null })
       }
       // console.log(query)
-        const result = await userCollection.insertOne(user);
-        res.send(result);
-      });
+      const result = await userCollection.insertOne(user);
+      res.send(result);
+    });
 
 
-      app.get('/users/v1', async (req, res) => {
-        let query = {};
-              // console.log(req.query)
-              if (req?.query?.email) {
-                  query = { email: req.query.email }
-              }
-        const cursor = await userCollection.findOne(query);
-        res.send(cursor);
+    app.get('/users/v1', async (req, res) => {
+      let query = {};
+      // console.log(req.query)
+      if (req?.query?.email) {
+        query = { email: req.query.email }
+      }
+      const cursor = await userCollection.findOne(query);
+      res.send(cursor);
     })
 
-      //about section
-      app.get('/about', async (req, res) => {
-        const result = await aboutCollection.find().toArray();
-        res.send(result);
-      });
+    //about section
+    app.get('/about', async (req, res) => {
+      const result = await aboutCollection.find().toArray();
+      res.send(result);
+    });
 
-      //package section
-      app.get('/packages', async (req, res) => {
-        const result = await packageCollection.find().toArray();
-        res.send(result);
-      });
+    //package section
+    app.get('/packages', async (req, res) => {
+      const result = await packageCollection.find().toArray();
+      res.send(result);
+    });
 
-      //asset section
-      app.get('/assets', async (req, res) => {
-        let query = {};
-              console.log(req.query)
-              if (req?.query?.email) {
-                  query = { email: req.query.email }
-              }
-              // console.log(query)
-        const cursor = assetCollection.find(query);
-        const result = await cursor.toArray();
-        res.send(result);
+    //asset section
+    app.get('/assets', async (req, res) => {
+      let query = {};
+      console.log(req.query)
+      if (req?.query?.email) {
+        query = { email: req.query.email }
+      }
+      // console.log(query)
+      const cursor = assetCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
     })
-    app.patch('/assets/:id', async(req,res)=>{
+    app.patch('/assets/:id', async (req, res) => {
       const item = req.body;
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) }
-      console.log(item,id)
+      // console.log(item, id)
       const updatedDoc = {
         $set: {
           productQuantity: item.productQuantity,
         }
       }
-        console.log(filter)
+      // console.log(filter)
       const result = await assetCollection.updateOne(filter, updatedDoc)
       res.send(result);
     })
-    
 
-      app.post('/assets', async (req,res)=>{
-        const asset = req.body;
-        // console.log(asset)
-        const result = await assetCollection.insertOne(asset)
-        res.send(result)
-      })
 
-      //custom request list section
-      app.get('/custom', async (req, res) => {
-        const cursor = customCollection.find();
-        const result = await cursor.toArray();
-        res.send(result);
+    app.post('/assets', async (req, res) => {
+      const asset = req.body;
+      // console.log(asset)
+      const result = await assetCollection.insertOne(asset)
+      res.send(result)
     })
 
-      app.post('/custom', async (req,res)=>{
-        const asset = req.body;
-        // console.log(asset)
-        const result = await customCollection.insertOne(asset)
-        res.send(result)
-      })
-      // request section
-      app.get('/requests', async (req, res) => {
-        const cursor = requestCollection.find();
-        const result = await cursor.toArray();
-        res.send(result);
+    //custom request list section
+    app.get('/custom', async (req, res) => {
+      const cursor = customCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    })
+
+    app.post('/custom', async (req, res) => {
+      const asset = req.body;
+      // console.log(asset)
+      const result = await customCollection.insertOne(asset)
+      res.send(result)
+    })
+    // request section
+    app.get('/requests', async (req, res) => {
+      const cursor = requestCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
     })
     app.get('/requests/v1', async (req, res) => {
       let query = {};
-            console.log(req.query)
-            if (req?.query?.email) {
-                query = { email: req.query.email }
-            }
-            console.log(query)
+      console.log(req.query)
+      if (req?.query?.email) {
+        query = { email: req.query.email }
+      }
+      console.log(query)
       const cursor = requestCollection.find(query);
       const result = await cursor.toArray();
       console.log(result)
       res.send(result);
-  })
+    })
+    app.patch('/requests/:id', async (req, res) => {
+      const item = req.body;
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) }
+      console.log(item, id)
+      const updatedDoc = {
+        $set: {
+          status: item.status,
+          approvalDate: item.approvalDate
+        }
+      }
+      console.log(filter)
+      const result = await requestCollection.updateOne(filter, updatedDoc)
+      res.send(result);
+    })
 
-      app.post('/requests', async (req,res)=>{
-        const requestAsset = req.body;
-        // console.log(asset)
-        const result = await requestCollection.insertOne(requestAsset)
-        res.send(result)
-      })
+    app.post('/requests', async (req, res) => {
+      const requestAsset = req.body;
+      // console.log(asset)
+      const result = await requestCollection.insertOne(requestAsset)
+      res.send(result)
+    })
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
