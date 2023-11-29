@@ -12,7 +12,7 @@ app.use(express.json());
 
 
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.2fbewnn.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -32,6 +32,8 @@ async function run() {
     const aboutCollection = client.db("assetManagement").collection("about");
     const packageCollection = client.db("assetManagement").collection("packages");
     const assetCollection = client.db("assetManagement").collection("assets");
+    const customCollection = client.db("assetManagement").collection("custom");
+    const requestCollection = client.db("assetManagement").collection("requests");
 
 
     //user section
@@ -48,7 +50,7 @@ async function run() {
       if (existingUser) {
         return res.send({ message: 'user already exists', insertedId: null })
       }
-      console.log(query)
+      // console.log(query)
         const result = await userCollection.insertOne(user);
         res.send(result);
       });
@@ -56,7 +58,7 @@ async function run() {
 
       app.get('/users/v1', async (req, res) => {
         let query = {};
-              console.log(req.query)
+              // console.log(req.query)
               if (req?.query?.email) {
                   query = { email: req.query.email }
               }
@@ -83,22 +85,58 @@ async function run() {
               if (req?.query?.email) {
                   query = { email: req.query.email }
               }
+              // console.log(query)
         const cursor = assetCollection.find(query);
         const result = await cursor.toArray();
         res.send(result);
     })
+    app.patch('/assets/:id', async(req,res)=>{
+      const item = req.body;
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) }
+      console.log(item,id)
+      const updatedDoc = {
+        $set: {
+          productQuantity: item.productQuantity,
+        }
+      }
+        console.log(filter)
+      const result = await assetCollection.updateOne(filter, updatedDoc)
+      res.send(result);
+    })
+    
 
       app.post('/assets', async (req,res)=>{
         const asset = req.body;
-        console.log(asset)
+        // console.log(asset)
         const result = await assetCollection.insertOne(asset)
         res.send(result)
       })
 
+      //custom request list section
+      app.get('/custom', async (req, res) => {
+        const cursor = customCollection.find();
+        const result = await cursor.toArray();
+        res.send(result);
+    })
+
+      app.post('/custom', async (req,res)=>{
+        const asset = req.body;
+        // console.log(asset)
+        const result = await customCollection.insertOne(asset)
+        res.send(result)
+      })
+      // request section
+      app.post('/requests', async (req,res)=>{
+        const requestAsset = req.body;
+        // console.log(asset)
+        const result = await requestCollection.insertOne(requestAsset)
+        res.send(result)
+      })
 
     // Send a ping to confirm a successful connection
-    // await client.db("admin").command({ ping: 1 });
-    // console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    await client.db("admin").command({ ping: 1 });
+    console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
