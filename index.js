@@ -34,6 +34,7 @@ async function run() {
     const assetCollection = client.db("assetManagement").collection("assets");
     const customCollection = client.db("assetManagement").collection("custom");
     const requestCollection = client.db("assetManagement").collection("requests");
+    const teamCollection = client.db("assetManagement").collection("teams");
 
 
     //user section
@@ -41,6 +42,21 @@ async function run() {
       const result = await userCollection.find().toArray();
       res.send(result);
     });
+
+    app.get('/users/v2', async (req, res) => {
+      let query = {};
+      // console.log(req.query)
+      if (req?.query?.team) {
+        query = { email: req.query.team }
+      }
+      const {team} = await userCollection.findOne(query);
+      // console.log(userData)
+      const query1 = {team:team}
+      const cursor = userCollection.find(query1);
+      // console.log(cursor)
+      const result = await cursor.toArray()
+      res.send(result);
+    })
 
     app.post('/users', async (req, res) => {
       const user = req.body;
@@ -54,7 +70,23 @@ async function run() {
       const result = await userCollection.insertOne(user);
       res.send(result);
     });
-
+    app.patch('/users/v5', async (req, res) => {
+      const id = req.params.id;
+      const item = req.query;
+      const query = {email: req.query.email}
+      // console.log(query)
+      const {_id:idx} = await userCollection.findOne(query);
+      const filter = { _id: new ObjectId(idx) }
+      // console.log('team hello world',item,id)
+      const updatedDoc = {
+        $set: {
+          team: item.team,
+        }
+      }
+      // console.log(filter)
+      const result = await userCollection.updateOne(filter, updatedDoc)
+      res.send(result);
+    })
 
     app.get('/users/v1', async (req, res) => {
       let query = {};
@@ -65,6 +97,8 @@ async function run() {
       const cursor = await userCollection.findOne(query);
       res.send(cursor);
     })
+
+    
 
     //about section
     app.get('/about', async (req, res) => {
@@ -81,12 +115,30 @@ async function run() {
     //asset section
     app.get('/assets', async (req, res) => {
       let query = {};
-      console.log(req.query)
+      // console.log(req.query)
       if (req?.query?.email) {
         query = { email: req.query.email }
       }
       // console.log(query)
       const cursor = assetCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    })
+
+
+
+////////////////////////////////////////
+    app.get('/assets/quantity', async (req, res) => {
+      let query = {};
+      // console.log(req.query)
+      if (req?.query?.email) {
+        query = { email: req.query.email }
+      }
+      // console.log(query)
+      const cursor = assetCollection.find({
+        ...query,
+        productQuantity: { $lt: 10 } 
+      }).limit(4);
       const result = await cursor.toArray();
       res.send(result);
     })
@@ -132,30 +184,50 @@ async function run() {
       const result = await cursor.toArray();
       res.send(result);
     })
-    app.get('/requests/v1', async (req, res) => {
-      let query = {};
-      console.log(req.query)
-      if (req?.query?.email) {
-        query = { email: req.query.email }
-      }
-      console.log(query)
-      const cursor = requestCollection.find(query);
+    app.get('/requests/pendingData', async (req, res) => {
+      
+      const cursor = requestCollection.find({
+        status: "Pending"
+      }).limit(5);
       const result = await cursor.toArray();
-      console.log(result)
       res.send(result);
     })
+
+    
+    
+    app.get('/requests/v4', async (req, res) => {
+      let query = {}
+      if (req?.query?.requesterEmail) {
+        query = { requesterEmail: req.query.requesterEmail}
+      }
+      const cursor = requestCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    })
+    // app.get('/requests/v1', async (req, res) => {
+    //   let query = {};
+    //   // console.log(req.query)
+    //   if (req?.query?.email) {
+    //     query = { email: req.query.email }
+    //   }
+    //   // console.log(query)
+    //   const cursor = requestCollection.find(query);
+    //   const result = await cursor.toArray();
+    //   // console.log(result)
+    //   res.send(result);
+    // })
     app.patch('/requests/:id', async (req, res) => {
       const item = req.body;
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) }
-      console.log(item, id)
+      // console.log(item, id)
       const updatedDoc = {
         $set: {
           status: item.status,
           approvalDate: item.approvalDate
         }
       }
-      console.log(filter)
+      // console.log(filter)
       const result = await requestCollection.updateOne(filter, updatedDoc)
       res.send(result);
     })
@@ -166,6 +238,24 @@ async function run() {
       const result = await requestCollection.insertOne(requestAsset)
       res.send(result)
     })
+
+    // Team Section
+    // app.post('/teams', async (req, res) => {
+    //   const user = req.body;
+    //   //user do not exists
+    //   let query = {};
+    //   console.log(req.query)
+    //   if (req?.query?.email) {
+    //     query = { email: req.query.email }
+    //   }
+    //   const existingUser = await teamCollection.findOne(query);
+    //   if (existingUser) {
+    //     return res.send({ message: 'user already exists', insertedId: null })
+    //   }
+    //   // console.log(query)
+    //   const result = await userCollection.insertOne(user);
+    //   res.send(result);
+    // });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
